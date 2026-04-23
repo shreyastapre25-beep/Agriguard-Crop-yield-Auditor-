@@ -77,10 +77,26 @@ if submit_btn:
         st.session_state.trend = "🆕 First audit for this farmer."
 
     # Save to Database
-    new_entry = pd.DataFrame([[datetime.now().strftime("%Y-%m-%d"), f_name, p_area, p_green, current_yield]], 
-                             columns=master_df.columns)
-    master_df = pd.concat([master_df, new_entry], ignore_index=True)
-    master_df.to_csv(DB_FILE, index=False)
+    # --- STEP 1: CALCULATE THE MISSING DATA PIECES ---
+current_yield = AgriLogic.calculate_yield(p_area, p_green)
+
+# --- STEP 2: ORGANIZE ALL 6 VALUES TO MATCH YOUR COLUMNS ---
+# The columns are: [Date, Farmer, Area, Greenness, Yield, Trend]
+new_row_data = [
+    datetime.now().strftime("%Y-%m-%d"), 
+    f_name, 
+    p_area, 
+    p_green, 
+    current_yield, 
+    st.session_state.get('trend', "🆕 First Audit") # This fills the 'Trend' column
+]
+
+# --- STEP 3: CREATE THE DATAFRAME ROW ---
+new_entry = pd.DataFrame([new_row_data], columns=master_df.columns)
+
+# --- STEP 4: COMBINE AND SAVE ---
+master_df = pd.concat([master_df, new_entry], ignore_index=True)
+master_df.to_csv(DB_FILE, index=False)
     
     st.sidebar.success("Audit Recorded!")
 
@@ -130,4 +146,6 @@ with v_col2:
 # ==============================================================================
 # 5. FOOTER
 # ==============================================================================
+st.markdown("---")
+st.caption("Developed by Team : Shreyas Tapre, Lokesh Chahar , Shruti Jagalpure")
 st.caption("Developed by FY B.Tech Student | AI & Data Science | Vishwakarma University")
